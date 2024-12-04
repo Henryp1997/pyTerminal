@@ -1,4 +1,5 @@
 import sys
+import os
 import re
 import subprocess
 from PyQt5.QtWidgets import *
@@ -12,10 +13,10 @@ class Commands():
     def initTerminalText(self, text_edit):
         text_edit.setPlainText("")
         text_edit.updateText("PyTerminal v0.0" + "\n\n")
-        text_edit.returnToDefaultInput(move_to_end=True)
+        text_edit.returnToDefaultInput()
         return ""
 
-    def pwd(self, _):
+    def pwd(self, text_edit):
         # Windows specific
         result = subprocess.run(["cd"], capture_output=True, shell=True, text=True).stdout.strip("\n")
         return result
@@ -48,14 +49,20 @@ class TerminalInput(QTextEdit):
     def __init__(self):
         super().__init__()
         self.cmd = Commands()
-        self.setStyleSheet("color: white;")
-        self.setFont(QFont("Consolas", 12))
+        self.current_dir = os.getcwd()
+        self.font = "Consolas"
+        self.font_size = 16
         self.cmd_dict = {
             "clear": self.cmd.initTerminalText,
+            "cls":   self.cmd.initTerminalText,
             "pwd":   self.cmd.pwd,
             "echo":  self.cmd.echo,
+            "dir":   self.cmd.dir,
+            "ls":    self.cmd.dir
         }
 
+        self.setStyleSheet("color: white;")
+        self.setFont(QFont(self.font, self.font_size))
         self.cmd.initTerminalText(self)
 
     def keyPressEvent(self, event):
@@ -64,17 +71,34 @@ class TerminalInput(QTextEdit):
             self.updateText("\n")
             self.updateText(self.executeCommand(cmd))
         
-            if cmd != "clear":
-                self.updateText("\n")
+            if cmd == "":
+                # Simple enter press
+                self.returnToDefaultInput()
+            elif cmd not in ("clear", "cls"):
+                self.updateText("\n\n")
                 self.returnToDefaultInput()
         else:
             # Only call super method if not enter or return. If we use the super method for these keys,
             # they add a newline character to the end of the text which messes up formatting
+            if event.key() == Qt.Key_Backspace:
+                print("yes")
             super().keyPressEvent(event)
 
-    def returnToDefaultInput(self, move_to_end=True):
-        self.updateText(self.executeCommand("pwd"))
-        self.updateText("> ", move_to_end=move_to_end)
+    def wheelEvent(self, event):
+        if event.modifiers() and Qt.ControlModifier:
+            self.adjustFontSize(direction=event.angleDelta().y())
+    
+    def adjustFontSize(self, direction):
+        if direction < 0:
+            self.font_size -= 1
+            self.setFont(QFont(self.font, self.font_size))
+        elif direction > 0:
+            self.font_size += 1
+            self.setFont(QFont(self.font, self.font_size))
+
+    def returnToDefaultInput(self):
+        self.updateText(self.current_dir)
+        self.updateText("> ")
 
     def executeCommand(self, cmdstr):
         if " " not in cmdstr:
@@ -90,14 +114,17 @@ class TerminalInput(QTextEdit):
         # Command with args
         cmdstr, args = cmdstr.split(" ", maxsplit=1)
 
+        command = self.cmd_dict.get(cmdstr, None)
+        if command is None:
+            return self.cmd.nonExistent(self, cmdstr)
+
         return self.cmd_dict[cmdstr](args)
 
-    def updateText(self, text, move_to_end=True):
+    def updateText(self, text):
         full_text = (self.toPlainText() + text)
         self.setPlainText(full_text)
 
-        if move_to_end:
-            self.moveCursor(QTextCursor.End)
+        self.moveCursor(QTextCursor.End)
 
     def currentInput(self):
         try:
@@ -123,21 +150,19 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # Set the window properties
+        # self.setWindowFlag(Qt.FramelessWindowHint, False)  # Remove the border but not the title bar
         self.setWindowTitle("PyTerminal")
-        self.setGeometry(100, 100, 800, 400)  # x, y, width, height
-
-        self.setStyleSheet("background-color: black;")
+        self.setGeometry(100, 100, 1000, 600)  # x, y, width, height
+        self.setStyleSheet("background-color: #0C0C0C; border: none")
 
         self.text_edit = TerminalInput()
         
-
         layout = QVBoxLayout()
         layout.addWidget(self.text_edit)
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(self.text_edit)
 
-    
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
