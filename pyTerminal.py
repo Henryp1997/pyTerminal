@@ -48,6 +48,8 @@ class TerminalInput(QTextEdit):
     def wheelEvent(self, event):
         if event.modifiers() and Qt.ControlModifier:
             self.adjustFontSize(direction=event.angleDelta().y())
+        else:
+            super().wheelEvent(event)
     
     def adjustFontSize(self, direction):
         if direction < 0:
