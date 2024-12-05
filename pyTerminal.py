@@ -11,15 +11,16 @@ class TerminalInput(QTextEdit):
         super().__init__()
         self.cmd = Commands()
         self.current_dir = os.getcwd()
-        self.font = "Consolas"
-        self.font_size = 16
+        self.font = "Cascadia Code"
+        self.font_size = 12
         self.cmd_dict = {
             "clear": self.cmd.initTerminalText,
             "cls":   self.cmd.initTerminalText,
             "pwd":   self.cmd.pwd,
             "echo":  self.cmd.echo,
             "dir":   self.cmd.dir,
-            "ls":    self.cmd.dir
+            "ls":    self.cmd.dir,
+            "dana":  self.cmd.dana
         }
 
         self.setStyleSheet("color: white;")
@@ -108,24 +109,63 @@ class TerminalInput(QTextEdit):
             QApplication.postEvent(self, event)
 
 
+class SyntaxHighlighter(QSyntaxHighlighter):
+    def __init__(self, document):
+        super().__init__(document)
+        self.highlight_rules = []
+        self.defineStringColour()
+        self.defineKeywordColour()
+
+    def defineStringColour(self):
+        # Define a QTextCharFormat for strings
+        string_format = QTextCharFormat()
+        string_format.setForeground(QColor("#22FF22"))
+        self.highlight_rules.append((r'".*?"', string_format))
+        self.highlight_rules.append((r"'.*?'", string_format))
+        
+    def defineKeywordColour(self):
+        # Define a QTextCharFormat for keywords
+        keyword_format = QTextCharFormat()
+        keyword_format.setForeground(QColor("#34d5eb"))
+        keyword_format.setFontWeight(QFont.Bold)
+
+        # Keywords to highlight
+        keywords = ["echo"]
+        for keyword in keywords:
+            pattern = f"\\b{keyword}\\b"
+            self.highlight_rules.append((pattern, keyword_format))
+
+    def highlightBlock(self, text):
+        for pattern, fmt in self.highlight_rules:
+            expression = QRegularExpression(pattern)
+            match_iterator = expression.globalMatch(text)
+            while match_iterator.hasNext():
+                match = match_iterator.next()
+                start = match.capturedStart()
+                length = match.capturedLength()
+                self.setFormat(start, length, fmt)
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         # Set the window properties
-        # self.setWindowFlag(Qt.FramelessWindowHint, False)  # Remove the border but not the title bar
         self.setWindowTitle("PyTerminal")
         self.setGeometry(100, 100, 1000, 600)  # x, y, width, height
         self.setStyleSheet("background-color: #0C0C0C; border: none")
 
         self.text_edit = TerminalInput()
+        self.highlighter = SyntaxHighlighter(self.text_edit.document())
         
         layout = QVBoxLayout()
         layout.addWidget(self.text_edit)
         container = QWidget()
         container.setLayout(layout)
-        self.setCentralWidget(self.text_edit)
+        self.setCentralWidget(container)
 
+    def trigger_rehighlight(self):
+        # Force the syntax highlighter to reapply highlighting
+        self.highlighter.rehighlight()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

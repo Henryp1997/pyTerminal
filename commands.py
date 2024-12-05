@@ -11,7 +11,7 @@ class Commands():
         text_edit.returnToDefaultInput()
         return ""
 
-    def pwd(self, text_edit):
+    def pwd(self, _):
         # Windows specific
         result = subprocess.run(["cd"], capture_output=True, shell=True, text=True).stdout.strip("\n")
         return result
@@ -38,3 +38,24 @@ class Commands():
     def nonExistent(self, _, cmdstr):
         err = subprocess.run([cmdstr], capture_output=True, shell=True, text=True).stderr.strip("\n")
         return err
+    
+    def dana(self, text_edit):
+        xmas = "".join(
+            [
+                "\n\nDear Dana,\n\n",
+                "       *       ", "\n",
+                "     * * *     ", "\n",
+                "    * * * *    ", "\n",
+                "   * * * * *   ", "\n",
+                "  *  MERRY  *  ", "\n",
+                " * CHRISTMAS * ", "\n",
+                "* * * * * * * *", "\n",
+                "     | | |      ", "\n",
+                "     | | |      ", "\n\n",
+                "I hope you have a lovely time with your family\n",
+                "back in Switzerland and don't miss me too much!! ;)\n\n",
+                "Love you lots,\n\nHenry (Henery) \u2665\n"
+            ]
+        )
+        text_edit.updateText(xmas)
+        return ""
