@@ -161,7 +161,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.text_edit)
         container = QWidget()
         container.setLayout(layout)
-        self.setCentralWidget(container)
+        self.setCentralWidget(self.text_edit)
 
     def trigger_rehighlight(self):
         # Force the syntax highlighter to reapply highlighting
