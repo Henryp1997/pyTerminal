@@ -1,4 +1,4 @@
-import os
+import re
 import subprocess
 
 class Commands():
@@ -32,6 +32,9 @@ class Commands():
         
         return result
     
+    def rm(self, cmdstr):
+        args = re.find
+
     def empty(self):
         return ""
     
@@ -39,23 +42,4 @@ class Commands():
         err = subprocess.run([cmdstr], capture_output=True, shell=True, text=True).stderr.strip("\n")
         return err
     
-    def dana(self, text_edit):
-        xmas = "".join(
-            [
-                "\n\nDear Dana,\n\n",
-                "       *       ", "\n",
-                "     * * *     ", "\n",
-                "    * * * *    ", "\n",
-                "   * * * * *   ", "\n",
-                "  *  MERRY  *  ", "\n",
-                " * CHRISTMAS * ", "\n",
-                "* * * * * * * *", "\n",
-                "     | | |      ", "\n",
-                "     | | |      ", "\n\n",
-                "I hope you have a lovely time with your family\n",
-                "back in Switzerland and don't miss me too much!! ;)\n\n",
-                "Love you lots,\n\nHenry (Henery) \u2665\n"
-            ]
-        )
-        text_edit.updateText(xmas)
-        return ""
+    

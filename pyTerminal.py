@@ -1,8 +1,10 @@
 import sys
 import os
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+
+# PyQt5 imports
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QTextEdit
+from PyQt5.QtGui import QFont, QTextCursor, QKeyEvent, QSyntaxHighlighter, QTextCharFormat, QColor
+from PyQt5.QtCore import Qt, QEvent, QRegularExpression
 
 from commands import Commands
 
@@ -20,7 +22,7 @@ class TerminalInput(QTextEdit):
             "echo":  self.cmd.echo,
             "dir":   self.cmd.dir,
             "ls":    self.cmd.dir,
-            "dana":  self.cmd.dana
+            "rm":    self.cmd.rm,
         }
 
         self.setStyleSheet("color: white;")
